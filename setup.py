@@ -26,13 +26,13 @@ def get_version():
         return versioneer.get_version()
 
 
-setup(name='datalake-common',
-      url='https://github.com/planetlabs/datalake-common',
+setup(name='datalake-common-dtkav',
+      url='https://github.com/dtkav/datalake-common',
       version=get_version(),
       cmdclass=versioneer.get_cmdclass(),
-      description='common datalake parts',
-      author='Brian Cavagnolo',
-      author_email='brian@planet.com',
+      description='fork of planetlabs/datalake-common',
+      author='Daniel Grossmann-Kavanagh',
+      author_email='me@danielgk.com',
       packages=find_packages(),
       install_requires=[
           'python-dateutil>=2.4.2',
@@ -47,11 +47,5 @@ setup(name='datalake-common',
               'pip==7.1.0',
               'wheel==0.24.0',
               'flake8==2.5.0',
-          ],
-          's3': [
-              'boto>=2.38.0',
-          ],
-          'test_s3': [
-              'moto==0.4.25',
           ]
       })

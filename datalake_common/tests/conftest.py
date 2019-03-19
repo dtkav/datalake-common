@@ -12,11 +12,13 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
+import datetime
+import os
 import pytest
 import random
-import string
-import os
 import six
+import string
+import uuid
 
 
 try:
@@ -35,13 +37,13 @@ except ImportError:
 def basic_metadata():
 
     return {
-        'version': 0,
-        'start': 1426809600000,
-        'end': 1426895999999,
+        'version': 1,
+        'start': '2018-05-23T00:00:00Z',
+        'end': '2018-05-24T01:20:30Z',
         'path': '/var/log/apache/access.log',
         'where': 'nebraska',
         'what': 'apache',
-        'hash': '12345',
+        'cid': '12345',
         'work_id': None,
     }
 
@@ -59,11 +61,15 @@ def random_hex(length):
 
 
 def random_interval():
-    year_2010 = 1262304000000
-    five_years = 5 * 365 * 24 * 60 * 60 * 1000
-    three_days = 3 * 24 * 60 * 60 * 1000
+    year_2010 = 1262304000
+    five_years = 5 * 365 * 24 * 60 * 60
+    three_days = 3 * 24 * 60 * 60
     start = year_2010 + random.randint(0, five_years)
     end = start + random.randint(0, three_days)
+    start = datetime.datetime.utcfromtimestamp(start)
+    start = start.isoformat('T', 'milliseconds')
+    end = datetime.datetime.utcfromtimestamp(end)
+    end = end.isoformat('T', 'milliseconds')
     return start, end
 
 
@@ -85,15 +91,15 @@ def random_metadata():
     start, end = random_interval()
     what = random_word(10)
     return {
-        'version': 0,
+        'version': 1,
         'start': start,
         'end': end,
         'path': os.path.join(random_abs_dir(), what),
         'work_id': random_work_id(),
         'where': random_word(10),
         'what': what,
-        'id': random_hex(40),
-        'hash': random_hex(40),
+        'uuid': str(uuid.uuid4()),
+        'cid': random_hex(32),
     }
 
 

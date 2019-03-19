@@ -23,10 +23,6 @@ from simplejson.scanner import JSONDecodeError
 import os
 import pytz
 
-# as seconds: 5138-11-16 09:46:40
-# as milliseconds: 1973-03-03 09:46:40
-MAX_TS_SECONDS = 100000000000
-
 try:
     long = long
 except NameError:
@@ -51,7 +47,7 @@ _WINDOWS_ABS_PATH = re.compile(r'^[a-zA-Z]:\\.+')
 
 class Metadata(dict):
 
-    _VERSION = 0
+    _VERSION = 1
 
     def __init__(self, *args, **kwargs):
         '''prepare compliant, normalized metadata from inputs
@@ -91,8 +87,8 @@ class Metadata(dict):
         return json.dumps(self)
 
     def _ensure_id(self):
-        if 'id' not in self:
-            self['id'] = uuid4().hex
+        if 'uuid' not in self:
+            self['uuid'] = str(uuid4())
 
     def _ensure_version(self):
         if 'version' not in self:
@@ -105,8 +101,8 @@ class Metadata(dict):
         self._validate_work_id()
         self._validate_path()
 
-    _REQUIRED_METADATA_FIELDS = ['version', 'start', 'where', 'what', 'id',
-                                 'hash', 'path']
+    _REQUIRED_METADATA_FIELDS = ['version', 'start', 'where', 'what', 'uuid',
+                                 'cid', 'path']
 
     def _validate_required_fields(self):
         for f in self._REQUIRED_METADATA_FIELDS:
@@ -179,14 +175,11 @@ class Metadata(dict):
 
     @staticmethod
     def normalize_date(date):
-        '''normalize the specified date to milliseconds since the epoch
+        '''normalize the specified date to iso8601 datetime
 
         If it is a string, it is assumed to be some sort of datetime such as
         "2015-12-27" or "2015-12-27T11:01:20.954". If date is a naive datetime,
         it is assumed to be UTC.
-
-        If numeric arguments are beyond 5138-11-16 (100,000,000,000 seconds
-        after epoch), they are interpreted as milliseconds since the epoch.
         '''
 
         if isinstance(date, datetime):
@@ -195,30 +188,19 @@ class Metadata(dict):
             date = datetime.now(pytz.UTC)
         elif isinstance(date, (basestring, int, float, long)):
             try:
-                ts = float(date)
-                if ts > MAX_TS_SECONDS:
-                    # ts was provided in ms
-                    ts = ts / 1000.0
-                # For unix timestamps on command line
-                date = datetime.utcfromtimestamp(float(ts))
-            except ValueError:
-                try:
-                    date = dateparse(date)
-                except ValueError as e:
-                    raise InvalidDatalakeMetadata(str(e))
+                date = dateparse(date)
+            except ValueError as e:
+                raise InvalidDatalakeMetadata(str(e))
         else:
             msg = 'could not parse a date from {!r}'.format(date)
             raise InvalidDatalakeMetadata(msg)
 
-        return Metadata._from_datetime(date)
+        return Metadata._isoformat(date)
 
     @staticmethod
-    def _from_datetime(date):
+    def _isoformat(date):
         if not date.tzinfo:
             date = date.replace(tzinfo=utc)
-        return Metadata._datetime_to_milliseconds(date)
+        d = date.isoformat('T', 'microseconds')
+        return d.replace("+00:00", "Z")
 
-    @staticmethod
-    def _datetime_to_milliseconds(d):
-        delta = d - _EPOCH
-        return int(delta.total_seconds()*1000.0)

@@ -14,10 +14,9 @@
 
 from .metadata import Metadata, InvalidDatalakeMetadata, \
     UnsupportedDatalakeMetadataVersion
-from .record import DatalakeRecord, has_s3
 
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 __all__ = ['Metadata', 'InvalidDatalakeMetadata',
-           'UnsupportedDatalakeMetadataVersion', 'DatalakeRecord', 'has_s3']
+           'UnsupportedDatalakeMetadataVersion']

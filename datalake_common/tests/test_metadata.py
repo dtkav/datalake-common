@@ -23,7 +23,7 @@ def test_version_default(basic_metadata):
     del(basic_metadata['version'])
     m = Metadata(basic_metadata)
     assert 'version' in m
-    assert m['version'] == 0
+    assert m['version'] == 1
 
 
 def test_unsupported_version(basic_metadata):
@@ -35,7 +35,7 @@ def test_unsupported_version(basic_metadata):
 def test_normalize_date(basic_metadata):
     basic_metadata['start'] = '2015-03-20'
     m = Metadata(basic_metadata)
-    assert m['start'] == 1426809600000
+    assert m['start'] == '2015-03-20T00:00:00.000000Z'
 
 
 def test_invalid_date(basic_metadata):
@@ -46,8 +46,8 @@ def test_invalid_date(basic_metadata):
 
 def test_id_gets_assigned(basic_metadata):
     m = Metadata(basic_metadata)
-    assert 'id' in m
-    assert m['id'] is not None
+    assert 'uuid' in m
+    assert m['uuid'] is not None
 
 
 def test_none_for_required_field(basic_metadata):
@@ -63,10 +63,10 @@ def test_work_id_gets_assigned(basic_metadata):
 
 
 def test_id_not_overwritten(basic_metadata):
-    basic_metadata['id'] = '123'
+    basic_metadata['uuid'] = '123'
     m = Metadata(basic_metadata)
-    assert 'id' in m
-    assert m['id'] == '123'
+    assert 'uuid' in m
+    assert m['uuid'] == '123'
 
 
 def test_no_end_allowed(basic_metadata):
@@ -111,9 +111,9 @@ def test_work_id_with_unallowed_characters(basic_metadata):
         Metadata(basic_metadata)
 
 
-basic_json = ('{"start": 1426809600000, "what": "apache", "version": 0, '
-              '"end": 1426895999999, "hash": "12345", "where": "nebraska", '
-              '"id": "9f8f8b618f48424c8d69a7ed76c88f05", "work_id": null, '
+basic_json = ('{"start": "2015-03-20T00:00:00.000000Z", "what": "apache", "version": 1, '
+              '"end": "2015-03-20T23:59:59.999000Z", "cid": "12345", "where": "nebraska", '
+              '"uuid": "80b38868-9430-4296-bf7a-589ee4b4900a", "work_id": null, '
               '"path": "/var/log/apache/access.log.1"}')
 
 
@@ -147,22 +147,10 @@ def test_random_metadata(random_metadata):
     Metadata(random_metadata)
 
 
-def test_normalize_float_date(basic_metadata):
-    basic_metadata['start'] = '1426809600.123'
-    m = Metadata(basic_metadata)
-    assert m['start'] == 1426809600123
-
-
-def test_normalize_int_date(basic_metadata):
-    basic_metadata['end'] = '1426809600123'
-    m = Metadata(basic_metadata)
-    assert m['end'] == 1426809600123
-
-
 def test_normalize_date_with_datetime(basic_metadata):
     date = dateparse('2015-03-20T00:00:00Z')
     ms = Metadata.normalize_date(date)
-    assert ms == 1426809600000
+    assert ms == '2015-03-20T00:00:00.000000Z'
 
 
 def test_normalize_garbage(basic_metadata):

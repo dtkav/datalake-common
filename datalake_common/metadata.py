@@ -142,7 +142,7 @@ class Metadata(dict):
 
         if self['work_id'] is None:
             return
-        self._validate_slug_field('work_id')
+        self._validate_slug_field_with_dots('work_id')
         if self['work_id'] == 'null':
             msg = '"work_id" cannot be the string "null"'
             raise InvalidDatalakeMetadata(msg)

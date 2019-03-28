@@ -93,8 +93,14 @@ def test_unallowed_spaces(basic_metadata):
         Metadata(basic_metadata)
 
 
-def test_unallowed_dots(basic_metadata):
-    basic_metadata['where'] = 'this.that.com'
+def test_bad_fqdn(basic_metadata):
+    basic_metadata['where'] = 'this.that.com-'
+    with pytest.raises(InvalidDatalakeMetadata):
+        Metadata(basic_metadata)
+
+
+def test_too_many_dots(basic_metadata):
+    basic_metadata['work_id'] = 'this.that.andtheotherthing'
     with pytest.raises(InvalidDatalakeMetadata):
         Metadata(basic_metadata)
 

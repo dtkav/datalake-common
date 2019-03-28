@@ -97,7 +97,8 @@ class Metadata(dict):
     def _validate(self):
         self._validate_required_fields()
         self._validate_version()
-        self._validate_slug_fields()
+        self._validate_what()
+        self._validate_where()
         self._validate_work_id()
         self._validate_path()
 
@@ -117,10 +118,11 @@ class Metadata(dict):
                    'Only {} is supported').format(v, self._VERSION)
             raise UnsupportedDatalakeMetadataVersion(msg)
 
-    _SLUG_FIELDS = ['where', 'what']
+    def _validate_what(self):
+        self._validate_slug_field("what")
 
-    def _validate_slug_fields(self):
-        [self._validate_slug_field(f) for f in self._SLUG_FIELDS]
+    def _validate_where(self):
+        self._validate_fqdn("where")
 
     def _validate_slug_field(self, f):
         if not re.match(r'^[a-z0-9_-]+$', self[f]):
@@ -128,11 +130,23 @@ class Metadata(dict):
                    '_ and - are allowed.').format(self[f], f)
             raise InvalidDatalakeMetadata(msg)
 
-    def _validate_slug_field_with_dots(self, f):
-        if not re.match(r'^[\.a-z0-9_-]+$', self[f]):
+    def _validate_dot_separated_slug_field(self, f):
+        if not re.match(r'^[a-z0-9_-]+[\.]?[a-z0-9_-]+$', self[f]):
             msg = ('Invalid value "{}" for "{}". Only lower-case letters, '
-                   'underscores, dashes, and dots '
-                   'are allowed.').format(self[f], f)
+                   'underscores, dashes, and one dot separating namespace '
+                   'from id are allowed.').format(self[f], f)
+            raise InvalidDatalakeMetadata(msg)
+
+    def _validate_fqdn(self, f):
+        # also allows hostnames (i.e. no dot)
+        if not re.match((
+                r'(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|'
+                r'((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)'
+            ),
+            self[f]
+        ):
+            msg = ('Invalid value "{}" for "{}". Must be a fully qualified '
+                   'domain name or hostname.').format(self[f], f)
             raise InvalidDatalakeMetadata(msg)
 
     def _validate_work_id(self):
@@ -142,7 +156,7 @@ class Metadata(dict):
 
         if self['work_id'] is None:
             return
-        self._validate_slug_field_with_dots('work_id')
+        self._validate_dot_separated_slug_field('work_id')
         if self['work_id'] == 'null':
             msg = '"work_id" cannot be the string "null"'
             raise InvalidDatalakeMetadata(msg)
